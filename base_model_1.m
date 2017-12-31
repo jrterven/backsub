@@ -164,7 +164,7 @@ imageSize = [imagesSize 3];
 numClasses = numel(classes);
 %lgraph = segnetLayers(imageSize,numClasses,'vgg16');
 
-lgraph = model01(imageSize, numClasses, tbl, classWeights);
+lgraph = model02(imageSize, numClasses, tbl, classWeights);
 %figure
 %plot(lgraph)
 
@@ -182,7 +182,7 @@ options = trainingOptions('sgdm', ...
     'Shuffle', 'every-epoch', ...
     'VerboseFrequency', 10, ...
     'Plots','training-progress', ...
-    'CheckpointPath','/home/juan/Documents/checkpoints');
+    'CheckpointPath','/datasets/backsub/checkpoints');
     
 %% Data Augmentation
 % Data augmentation is used during training to provide more examples to the
