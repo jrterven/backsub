@@ -19,7 +19,7 @@ doTraining = 2;
 pretrainedPath = '/home/juan/Dropbox/Projects/Background_subtraction/BackgroundSubtraction/code/backsub_model.mat';
 
 % output trained model
-trainedModelPath = '/home/juan/Dropbox/Projects/Background_subtraction/BackgroundSubtraction/code/backsub_model2.mat';
+trainedModelPath = '/datasets/backsub/checkpoints/model03.mat';
 
 % last checkpoint
 checkpoint = '/datasets/backsub/checkpoints/convnet_checkpoint__1724__2017_12_31__13_19_59.mat';

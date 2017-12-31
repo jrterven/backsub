@@ -6,8 +6,8 @@ close all
 clc
 
 datasetPath = '/datasets/backsub/cdnet2014/dataset';
-category = 'baseline';
-video = 'pedestrians';
+categories_list = 'baseline';
+video_list = ['highway', 'office', 'pedestrians', 'PETS2006'];
 
 categoryList = filesys('getFolders', datasetPath);
 categoryPath = fullfile(datasetPath, category);
