@@ -1,4 +1,4 @@
-function lgraph = model01(inputSize, numClasses, tbl, classWeights)
+function lgraph = model02(inputSize, numClasses, tbl, classWeights)
 % Small model with single 8x downsampling, upsampling and 64 filters
 
 %% Create An Image Input Layer
@@ -55,7 +55,7 @@ downsamplingLayers = [
 % Create a transposed convolution layer to upsample by 2. 
 %%
 filterSize = 4;
-transposedConvUpsample2x = transposedConv2dLayer(4,numFilters,'Stride',2,'Cropping',1);
+transposedConvUpsample2x = transposedConv2dLayer(filterSize,numFilters,'Stride',2,'Cropping',1);
 %% 
 % The 'Cropping' parameter is set to 1 to make the output size equal twice 
 % the input size. 

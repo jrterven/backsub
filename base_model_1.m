@@ -13,7 +13,7 @@ clc
 % 1: train from scratch
 % 2: resume training from checkpoint
 % 3: do not train, just load model
-doTraining = 1;
+doTraining = 2;
 
 % input pre-trained model
 pretrainedPath = '/home/juan/Dropbox/Projects/Background_subtraction/BackgroundSubtraction/code/backsub_model.mat';
@@ -22,7 +22,7 @@ pretrainedPath = '/home/juan/Dropbox/Projects/Background_subtraction/BackgroundS
 trainedModelPath = '/home/juan/Dropbox/Projects/Background_subtraction/BackgroundSubtraction/code/backsub_model2.mat';
 
 % last checkpoint
-checkpoint = '/home/juan/Documents/checkpoints/convnet_checkpoint__37928__2017_12_31__11_41_31.mat';
+checkpoint = '/datasets/backsub/checkpoints/convnet_checkpoint__1724__2017_12_31__13_19_59.mat';
 
 %% CDnet2014 Dataset location
 %outputFolder = '/data/datasets/cdnet2014/dataset/baseline/highway2';
@@ -164,9 +164,9 @@ imageSize = [imagesSize 3];
 numClasses = numel(classes);
 %lgraph = segnetLayers(imageSize,numClasses,'vgg16');
 
-lgraph = model02(imageSize, numClasses, tbl, classWeights);
-%figure
-%plot(lgraph)
+lgraph = model03(imageSize, numClasses, tbl, classWeights);
+figure
+plot(lgraph)
 
 %% Select Training Options
 % The optimization algorithm used for training is stochastic gradient
