@@ -25,40 +25,33 @@ trainedModelPath = '/datasets/backsub/checkpoints/model03_3.mat';
 checkpoint = '/datasets/backsub/checkpoints/convnet_checkpoint__1724__2017_12_31__13_19_59.mat';
 
 %% CDnet2014 Dataset location
-%outputFolder = '/data/datasets/cdnet2014/dataset/baseline/highway2';
-outputFolder = '/datasets/backsub/cdnet2014/dataset/baseline/highway2';
-
-% Estimate the background using the median of 100 images
-bgImg = estimateBackground(fullfile(outputFolder, 'input'), 1, 100);
-bgImg = rgb2gray(im2double(bgImg));
+outputFolder = '/datasets/backsub/cdnet2014/dataForTraining';
 
 %% Load Images CDnet2014 Dataset
 % Use |imageDatastore| to load CDnet2014 images. The |imageDatastore| enables you 
 % to efficiently load a large collection of images on disk.
 %%
-imgDir = fullfile(outputFolder,'input');
+imgDir = fullfile(outputFolder,'images');
 imds = imageDatastore(imgDir);
 %% 
-% Display one of the images and the background
+% Read one of the images and extract the channels
 I = readimage(imds, 1);
-I = rgb2gray(im2double(I));
-bgsub = I;
 
-% Subtract the background
-th = 0.20; % threshold (bigger = remove more information)
-bgsub(abs(I - bgImg) <= th ) = 0;
-bgsub(bgsub > 0) = 1;
+img = I(:, :, 1);
+background = I(:, :, 2);
+foreground = I(:, :, 3);
 
 figure
-subplot(1, 3, 1)
+subplot(2, 3, 1)
 imshow(I)
-% Display the background
-subplot(1, 3, 2)
-imshow(bgImg)
+subplot(2, 3, 2)
+imshow(background)
+subplot(2, 3, 3)
+imshow(img)
+subplot(2, 3, 4)
+imshow(foreground)
 
-% Display background sub
-subplot(1, 3, 3)
-imshow(bgsub)
+imageSize = size(I);
 
 %% Load CDnet2014 Pixel-Labeled Images
 % Use |pixelLabelDatastore| to load CDnet2014 pixel label image data. A
@@ -93,7 +86,7 @@ C = readimage(pxds, 1);
 cmap = CDnet2014ColorMap;
 B = labeloverlay(I,C,'ColorMap',cmap);
 
-figure
+subplot(2, 3, 5)
 imshow(B)
 pixelLabelColorbar(cmap,classes);
 %% 
@@ -128,14 +121,14 @@ ylabel('Frequency')
 % Resize the images, convert to gray subtract the background and stack
 % the gray input, the background, and the background subtraction.
 %%
-imagesSize = [240, 320];
-disp('Preparing images offline ...')
-imageFolder = fullfile(outputFolder,'imagesReszed',filesep);
-imds = prepareImagesForModel(imds, imagesSize, bgImg, imageFolder, 0.2);
-
-disp('Resizing labels ...')
-labelFolder = fullfile(outputFolder,'labelsResized',filesep);
-pxds = resizePixelLabels(pxds, imagesSize, labelFolder);
+% imagesSize = [240, 320];
+ disp('Preparing images offline ...')
+ imageFolder = fullfile(outputFolder,'imagesReszed',filesep);
+ imds = prepareImagesForModel(imds, imageSize(1:2), imageFolder);
+% 
+ disp('Resizing labels ...')
+ labelFolder = fullfile(outputFolder,'labelsResized',filesep);
+ pxds = resizePixelLabels(pxds, imageSize(1:2), labelFolder);
 
 %% Prepare Training and Test Sets 
 % The model is trained using 70% of the images from the dataset. The rest of the 
@@ -143,9 +136,9 @@ pxds = resizePixelLabels(pxds, imagesSize, labelFolder);
 % pixel label data into a training and test set.
 %%
 disp('Prepare training and test sets')
-[imdsTrain, imdsTest, pxdsTrain, pxdsTest] = partitionData(imds, pxds, 0.7);
+[imdsTrain, imdsTest, pxdsTrain, pxdsTest] = partitionData(imds, pxds, 0.8);
 %% 
-% The 70/30 split results in the following number of training and test 
+% The 90/10 split results in the following number of training and test 
 % images:
 
 numTrainingImages = numel(imdsTrain.Files)
@@ -160,7 +153,6 @@ numTestingImages = numel(imdsTest.Files)
 imageFreq = tbl.PixelCount ./ tbl.ImagePixelCount;
 classWeights = median(imageFreq) ./ imageFreq
 
-imageSize = [imagesSize 3];
 numClasses = numel(classes);
 %lgraph = segnetLayers(imageSize,numClasses,'vgg16');
 
@@ -374,7 +366,7 @@ end
 %% 
 % 
 
-function imds = prepareImagesForModel(imds, newSize, backgroundImg, imageFolder, threshold)
+function imds = prepareImagesForModel(imds, newSize, imageFolder)
 if ~exist(imageFolder,'dir') 
     mkdir(imageFolder)
 else
@@ -389,16 +381,6 @@ while hasdata(imds)
     
     % Resize image.
     I = imresize(I,newSize);    
-    
-    I = rgb2gray(im2double(I));
-    bgsub = I;
-
-    % Subtract the background
-    bgsub(abs(I - backgroundImg) <= threshold ) = 0;
-    bgsub(bgsub > 0) = 1;
-    
-    % Create input data by stacking the 3 frames
-    I = cat(3, I, backgroundImg, bgsub);
     
     % Write to disk.
     [~, filename, ext] = fileparts(info.Filename);
