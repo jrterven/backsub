@@ -8,30 +8,28 @@ clc
 
 %gpuDevice(2)
 
-%vgg16();
-
 % 1: train from scratch
 % 2: resume training from checkpoint
 % 3: do not train, just load model
 doTraining = 1;
 
-% input pre-trained model
-pretrainedPath = '/datasets/backsub/checkpoints/model03_3.mat';
+% output trained model (option 1)
+trainedModelPath = '/datasets/backsub/checkpoints/model03_Night.mat';
 
-% output trained model
-trainedModelPath = '/datasets/backsub/checkpoints/model03_3.mat';
+% last checkpoint (option 2)
+checkpoint = '';
 
-% last checkpoint
-checkpoint = '/datasets/backsub/checkpoints/convnet_checkpoint__1724__2017_12_31__13_19_59.mat';
+% input pre-trained model (option 3)
+pretrainedPath = '';
 
 %% CDnet2014 Dataset location
-outputFolder = '/datasets/backsub/cdnet2014/dataForTraining';
+dataFolder = '/datasets/backsub/cdnet2014/dataForTrainingnightVideos';
 
 %% Load Images CDnet2014 Dataset
 % Use |imageDatastore| to load CDnet2014 images. The |imageDatastore| enables you 
 % to efficiently load a large collection of images on disk.
 %%
-imgDir = fullfile(outputFolder,'images');
+imgDir = fullfile(dataFolder,'images');
 imds = imageDatastore(imgDir);
 %% 
 % Read one of the images and extract the channels
@@ -75,7 +73,7 @@ labelIDs = CDnet2014PixelLabelIDs();
 %% 
 % Use the classes and label IDs to create the |pixelLabelDatastore|:
 
-labelDir = fullfile(outputFolder,'groundtruth');
+labelDir = fullfile(dataFolder,'groundtruth');
 pxds = pixelLabelDatastore(labelDir,classes,labelIDs);
 %% 
 % Read and display one of the pixel-labeled images by overlaying it on top 
@@ -123,11 +121,11 @@ ylabel('Frequency')
 %%
 % imagesSize = [240, 320];
  disp('Preparing images offline ...')
- imageFolder = fullfile(outputFolder,'imagesReszed',filesep);
+ imageFolder = fullfile(dataFolder,'imagesReszed',filesep);
  imds = prepareImagesForModel(imds, imageSize(1:2), imageFolder);
 % 
  disp('Resizing labels ...')
- labelFolder = fullfile(outputFolder,'labelsResized',filesep);
+ labelFolder = fullfile(dataFolder,'labelsResized',filesep);
  pxds = resizePixelLabels(pxds, imageSize(1:2), labelFolder);
 
 %% Prepare Training and Test Sets 
@@ -172,10 +170,10 @@ options = trainingOptions('sgdm', ...
     'LearnRateDropFactor', 0.5, ...
     'LearnRateDropPeriod', 10, ...
     'L2Regularization', 0.0005, ...
-    'MaxEpochs', 100, ...  
+    'MaxEpochs', 80, ...  
     'MiniBatchSize', 1, ...
     'Shuffle', 'every-epoch', ...
-    'VerboseFrequency', 10, ...
+    'VerboseFrequency', 20, ...
     'Plots','training-progress', ...
     'CheckpointPath','/datasets/backsub/checkpoints');
     

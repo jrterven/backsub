@@ -4,6 +4,7 @@ clear all
 close all
 clc
 
+numImagesForBackground = 1000;
 img_h = 240;
 img_w = 320;
 threshold = [0 0.05 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1]; % threshold for simple background subtraction
@@ -13,7 +14,7 @@ dataPath = '/datasets/backsub/cdnet2014';
 % 1:PTZ, 2:badWeather, 3:baseline, 4:camerajitter, 5:dynamicBackground,
 % 6:intermittentObjectMotion, 7:lowFramerate, 8:nightVideos, 9:shadow,
 % 10:thermal, 11:turbulence
-category = 3;
+category = 8;
 datasetPath = fullfile(dataPath, 'dataset');
 
 categoryList = filesys('getFolders', datasetPath);
@@ -72,7 +73,10 @@ for vIdx = 1:length(videoList)
     
     % Estimate the background
     fprintf('Estimating background of video %s ...\n', video)
-    backgroundImg = estimateBackground(imagesPath, 1, 50);
+    if numImagesForBackground >= (finalFrame - initFrame)
+        numImagesForBackground = finalFrame - initFrame - 1;
+    end
+    backgroundImg = estimateBackground(imagesPath, initFrame, numImagesForBackground);
     backgroundImg = rgb2gray(im2double(backgroundImg));
     backgroundImg = imresize(backgroundImg,[img_h img_w]);
     
@@ -97,14 +101,15 @@ for vIdx = 1:length(videoList)
         bgsub = img;
         bgsub(abs(img - backgroundImg) <= threshold(category) ) = 0;
         bgsub(bgsub > 0) = 1;
-        bgsub = imopen(bgsub, strel('rectangle', [3,3]));
-        bgsub = imclose(bgsub, strel('rectangle', [10, 10]));
-        bgsub = imfill(bgsub, 'holes');
+%         bgsub = imopen(bgsub, strel('rectangle', [3,3]));
+%         bgsub = imclose(bgsub, strel('rectangle', [3, 3]));
+%         bgsub = imfill(bgsub, 'holes');
         
         % Zero-out the unlabeled regions
         img(labelImg == 85) = 0; 
         backgroundImg(labelImg == 85) = 0; 
         bgsub(labelImg == 85) = 0; 
+        labelImg(labelImg == 85) = 0;
 
         % Create input data by stacking the 3 frames
         imgForModel = cat(3, img, backgroundImg, bgsub);
