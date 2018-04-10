@@ -5,10 +5,11 @@
 %     videoPath: absolute path of the video
 %     startImg: starting image for the background estimation
 %     n: number images used for background estimation
+%     handle: image handle to show video
 %
 %   Output:
 %     background: [height, width, 3] image of the background.
-function background = estimateBackground(videoPath, startImg, n)
+function background = estimateBackground(videoPath, startImg, n, handle, displayFrameNum)
     % get image names
     imageFiles = filesys('getFiles', videoPath);
     
@@ -24,6 +25,12 @@ function background = estimateBackground(videoPath, startImg, n)
     for i=startImg + 1 : startImg + n
         imName = fullfile(videoPath, imageFiles{i});
         img = imread(imName);
+        
+        if ~isempty(handle)
+            set(handle, 'CData', img)
+            drawnow
+        end
+        
         red = img(:,:,1); % Red channel
         green = img(:,:,2); % Green channel
         blue = img(:,:,3); % Blue channel
@@ -32,6 +39,10 @@ function background = estimateBackground(videoPath, startImg, n)
         reds = cat(3, reds, red);
         greens = cat(3, greens, green);
         blues = cat(3, blues, blue);
+        
+        if displayFrameNum
+            disp(i)
+        end
     end
     
     % calculate the median across third dimension

@@ -1,27 +1,25 @@
-% TODO: remove un-labeled regions
-% Set threshold depending on video
+% This version assumes that there is a background image
 clear all
 close all
 clc
 
-numImagesForBackground = 1000;
 img_h = 240;
 img_w = 320;
-threshold = [0 0.05 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1]; % threshold for simple background subtraction
 
 dataPath = '/datasets/backsub/cdnet2014';
+threshold = [0 0.05 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1]; % threshold for simple background subtraction
 % Video categories:
 % 1:PTZ, 2:badWeather, 3:baseline, 4:camerajitter, 5:dynamicBackground,
 % 6:intermittentObjectMotion, 7:lowFramerate, 8:nightVideos, 9:shadow,
 % 10:thermal, 11:turbulence
-category = 8;
+category = 3;
 datasetPath = fullfile(dataPath, 'dataset');
 
 categoryList = filesys('getFolders', datasetPath);
 categoryPath = fullfile(datasetPath, categoryList{category});
 videoList = filesys('getFolders', categoryPath);
 
-output_dir = fullfile(dataPath, sprintf('dataForTraining%s',categoryList{category}))
+output_dir = fullfile(dataPath, sprintf('dataForTraining_iterative%s',categoryList{category}))
 output_imgs = fullfile(output_dir, 'images');
 output_labels = fullfile(output_dir, 'groundtruth');
 
@@ -71,12 +69,8 @@ for vIdx = 1:length(videoList)
     initFrame = tempROI(1);
     finalFrame = tempROI(2);
     
-    % Estimate the background
-    fprintf('Estimating background of video %s ...\n', video)
-    if numImagesForBackground >= (finalFrame - initFrame)
-        numImagesForBackground = finalFrame - initFrame - 1;
-    end
-    backgroundImg = estimateBackground(imagesPath, initFrame, numImagesForBackground);
+    % Get the background
+    backgroundImg = imread(fullfile(videoPath, 'background.jpg'));
     backgroundImg = rgb2gray(im2double(backgroundImg));
     backgroundImg = imresize(backgroundImg,[img_h img_w]);
     
@@ -101,9 +95,9 @@ for vIdx = 1:length(videoList)
         bgsub = img;
         bgsub(abs(img - backgroundImg) <= threshold(category) ) = 0;
         bgsub(bgsub > 0) = 1;
-%         bgsub = imopen(bgsub, strel('rectangle', [3,3]));
-%         bgsub = imclose(bgsub, strel('rectangle', [3, 3]));
-%         bgsub = imfill(bgsub, 'holes');
+        %bgsub = imopen(bgsub, strel('rectangle', [3,3]));
+        %bgsub = imclose(bgsub, strel('rectangle', [20, 20]));
+        %bgsub = imfill(bgsub, 'holes');
         
         % Zero-out the unlabeled regions
         img(labelImg == 85) = 0; 

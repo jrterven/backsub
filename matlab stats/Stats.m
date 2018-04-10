@@ -42,14 +42,14 @@ classdef Stats < handle
             % Save the confusion matrix as well
             [TP FP FN TN SE] = confusionMatrixToVar(confusionMatrix);
             
-            f = fopen([this.path '\' category '\' video '\cm.txt'], 'wt');
+            f = fopen([this.path '/' category '/' video '/cm.txt'], 'wt');
             fprintf(f, 'cm video %s %s %u %u %u %u %u', category, video, TP, FP, FN, TN, SE);
             fclose(f);
         end
         
-        function this = writeCategoryResult(this, category)
+        function this = writeCategoryResult(this, category, numPasses)
             categoryStats = [];
-            f = fopen([this.path '\' category '\cm.txt'], 'wt');
+            f = fopen([this.path '/' category '/cm.txt'], 'a');
             
             currentCategory = this.categories(category);
             for video = keys(currentCategory),
@@ -57,23 +57,26 @@ classdef Stats < handle
                 currentVideo = currentCategory(video);
                 [TP FP FN TN SE stats] = confusionMatrixToVar(currentVideo);
                 categoryStats = [categoryStats; stats];
-                fprintf(f, 'cm video %s %s %u %u %u %u %u\n', category, video, TP, FP, FN, TN, SE);
+                %fprintf(f, 'cm video %s %s %u %u %u %u %u\n', category, video, TP, FP, FN, TN, SE);
             end
             
             confusionMatrix = sumCells(values(currentCategory));
             [TP FP FN TN SE] = confusionMatrixToVar(confusionMatrix);
-            fprintf(f, 'cm category %s %u %u %u %u %u\n\n', category, TP, FP, FN, TN, SE);
+            %fprintf(f, 'cm category %s %u %u %u %u %u\n\n', category, TP, FP, FN, TN, SE);
             
-            fprintf(f, '\nRecall\t\t\tSpecificity\t\tFPR\t\t\t\tFNR\t\t\t\tPBC\t\t\t\tPrecision\t\tFMeasure');
-            fprintf(f, '\n%1.10f\t%1.10f\t%1.10f\t%1.10f\t%1.10f\t%1.10f\t%1.10f', mean(categoryStats));
+            if all(fgetl(f) == -1)
+                fprintf(f, '\nNumPasses\tRecall\tSpecificity\tFPR\tFNR\tPBC\tPrecision\tFMeasure');
+            end
+            fseek(f, 0, 'eof');
+            fprintf(f, '\n%d\t%1.10f\t%1.10f\t%1.10f\t%1.10f\t%1.10f\t%1.10f\t%1.10f', numPasses, mean(categoryStats));
             
             fclose(f);
         end
         
-        function this = writeOverallResults(this)
+        function this = writeOverallResults(this, numPasses)
             categoryStats = containers.Map();
             
-            f = fopen([this.path '\cm.txt'], 'wt');
+            f = fopen([this.path '/cm.txt'], 'a');
             
             for category = keys(this.categories),
                 category = category{1};
@@ -84,21 +87,21 @@ classdef Stats < handle
                     currentVideo = currentCategory(video);
                     [TP FP FN TN SE stats] = confusionMatrixToVar(currentVideo);
                     categoryStats(category) = [categoryStats(category); stats];
-                    fprintf(f, 'cm video %s %s %u %u %u %u %u\n', category, video, TP, FP, FN, TN, SE);
+                    %fprintf(f, 'cm video %s %s %u %u %u %u %u\n', category, video, TP, FP, FN, TN, SE);
                 end
                 
                 confusionMatrix = sumCells(values(currentCategory));
                 [TP FP FN TN SE] = confusionMatrixToVar(confusionMatrix);
-                fprintf(f, 'cm category %s %u %u %u %u %u\n\n', category, TP, FP, FN, TN, SE);
+                %fprintf(f, 'cm category %s %u %u %u %u %u\n\n', category, TP, FP, FN, TN, SE);
             end
             
             sumInMatrix = mapToMatrix(this.categories);
             confusionMatrix = sum(sumInMatrix);
             [TP FP FN TN SE] = confusionMatrixToVar(confusionMatrix);
-            fprintf(f, '\n\ncm overall %u %u %u %u %u', TP, FP, FN, TN, SE);
+            %fprintf(f, '\n\ncm overall %u %u %u %u %u', TP, FP, FN, TN, SE);
             
             overallStats = [];
-            fprintf(f, '\n\n\n\n\t\t\tRecall\t\t\tSpecificity\t\tFPR\t\t\t\tFNR\t\t\t\tPBC\t\t\t\tPrecision\t\tFMeasure');
+            fprintf(f, '\n\n\n\nNumPass\tCategoryName\tRecall\tSpecificity\tFPR\tFNR\tPBC\tPrecision\tFMeasure');
             for category = keys(this.categories),
                 category = category{1};
                 
@@ -109,6 +112,7 @@ classdef Stats < handle
                     categoryName = strcat(category(1:7), '..');
                 end
                 fprintf(f, '\n%s :\t%1.10f\t%1.10f\t%1.10f\t%1.10f\t%1.10f\t%1.10f\t%1.10f', categoryName, means);
+                %fprintf(f, '\n%d\t%s\t%1.10f\t%1.10f\t%1.10f\t%1.10f\t%1.10f\t%1.10f\t%1.10f', numPasses, categoryName, means);
             end
 
             fprintf(f, '\n\nOverall:\t%1.10f\t%1.10f\t%1.10f\t%1.10f\t%1.10f\t%1.10f\t%1.10f', mean(overallStats));

@@ -11,16 +11,16 @@ img_h = 240;
 img_w = 320;
 
 % Number of passes
-numPasses = 5;
+numPasses = 1;
 
 % Trained model to use
 trainedModel = '/datasets/backsub/checkpoints/model03_shadow.mat';
 
-% Video file
-videoPath = '/datasets/tracking/multi_cam/ICGLab6/ICGLab6/chap/cam131.avi';
+% Images path
+videoPath = '/datasets/aifi/video_office';
 
-% Background image
-backgroundImagePath = '/datasets/tracking/multi_cam/ICGLab6/ICGLab6/chap/back_131.jpg';
+% Estimate background image
+
 
 
 cmap = [

@@ -9,8 +9,10 @@ clc
 img_h = 240;
 img_w = 320;
 
+multiPass = 2;
+
 % input trained model 
-trainedModel = '/datasets/backsub/checkpoints/model03_shadow.mat';
+trainedModel = '/datasets/backsub/checkpoints/model04_baselineStage_1_2.mat';
 videoPath = '/datasets/tracking/multi_cam/ICGLab6/ICGLab6/chap/cam131.avi';
 
 cmap = [
@@ -60,7 +62,8 @@ for i = 1:1000
     bgsub(abs(img - backgroundImg) <= 0.1 ) = 0;
     bgsub(bgsub > 0) = 1;
     bgsub = imopen(bgsub, strel('rectangle', [3,3]));
-    bgsub = imclose(bgsub, strel('rectangle', [10, 10]));
+    %bgsub = imclose(bgsub, strel('rectangle', [14, 14]));
+    bgsub = imdilate(bgsub, strel('rectangle', [14, 14])); 
     bgsub = imfill(bgsub, 'holes');
 
     % images to u8
@@ -78,11 +81,11 @@ for i = 1:1000
     fg(fg == 1) = 0;
     fg(fg == 2) = 255;
     
-    B1 = labeloverlay(img, fgCat, 'Colormap', cmap, 'Transparency',0.4);
+    B1 = labeloverlay(img, fgCat, 'Colormap', cmap, 'Transparency',0.8);
     
-    [fgCat, fg2] = runMultipleTimes(img, backgroundImg, fg, net, 5);
+    [fgCat, fg2] = runMultipleTimes(img, backgroundImg, fg, net, multiPass);
     
-    B2 = labeloverlay(img, fgCat, 'Colormap', cmap, 'Transparency',0.4);
+    B2 = labeloverlay(img, fgCat, 'Colormap', cmap, 'Transparency',0.8);
     
     set(h1, 'CData', img)
     set(h2, 'CData', backgroundImg)

@@ -1,10 +1,21 @@
 %% Background subtraction Idea 1 on CDnet2014
 % This model takes as input a background estimate, an input image and a
 % background subtraction estimation.
+%
+% Juan R. Terven, juan@aifi.com
+% Diana M. Cordova, diana_mce@hotmail.com
+% 
+% Citation:
+% Cordova-Esparza D., Terven J. Jimenez-Hernandez H., Herrera-Navarro A.,
+% Vazquez-Cervantes A., Garcia-Huerta Juan M.,
+% "Telepresence System based on Simulated Holographic Display",
+% Arxiv e-print.
+%
+% https://github.com/jrterven/backsub
 
 clear all
 close all
-clc
+%clc
 
 %gpuDevice(2)
 
@@ -13,17 +24,17 @@ clc
 % 3: do not train, just load model
 doTraining = 1;
 
-% output trained model (option 1)
-trainedModelPath = '/datasets/backsub/checkpoints/model03_Night.mat';
+% output trained model (options 1 and 2)
+trainedModelPath = '/datasets/backsub/checkpoints/model04_baselineLevels_25_epochs.mat';
 
 % last checkpoint (option 2)
-checkpoint = '';
+checkpoint = '/datasets/backsub/checkpoints/convnet_checkpoint__74138__2018_01_29__09_14_41.mat';
 
 % input pre-trained model (option 3)
-pretrainedPath = '';
+pretrainedPath = '/datasets/backsub/checkpoints/model04_baselineLevels_25_epochs.mat';
 
 %% CDnet2014 Dataset location
-dataFolder = '/datasets/backsub/cdnet2014/dataForTrainingnightVideos';
+dataFolder = '/datasets/backsub/cdnet2014/dataForTraining_baseline_levels';
 
 %% Load Images CDnet2014 Dataset
 % Use |imageDatastore| to load CDnet2014 images. The |imageDatastore| enables you 
@@ -169,11 +180,11 @@ options = trainingOptions('sgdm', ...
     'LearnRateSchedule', 'piecewise', ...
     'LearnRateDropFactor', 0.5, ...
     'LearnRateDropPeriod', 10, ...
-    'L2Regularization', 0.0005, ...
-    'MaxEpochs', 80, ...  
+    'L2Regularization', 0.0001, ...
+    'MaxEpochs', 10, ...  
     'MiniBatchSize', 1, ...
     'Shuffle', 'every-epoch', ...
-    'VerboseFrequency', 20, ...
+    'VerboseFrequency', 100, ...
     'Plots','training-progress', ...
     'CheckpointPath','/datasets/backsub/checkpoints');
     
